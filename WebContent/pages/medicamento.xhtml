@@ -11,18 +11,19 @@
 		<ui:include src="/includes/menu.xhtml" />
 	</ui:define>
 	<ui:define name="conteudo">
-		<h1
-			style="text-align: center; font-size: 21px; text-transform: uppercase;">Medicamentos</h1>
-		<h:form>
-			<p:dataTable id="tbl" var="medicamento"
-				value="#{MedicamentoMB.medicamentoItens}"
-				emptyMessage="Nenhum registro buscado."
+		<h1	style="text-align: center; font-size: 21px; text-transform: uppercase;">Medicamentos</h1>
+		
+		<h:form id="formTable">
+			<p:dataTable id="tbl" var="medicamento" value="#{MedicamentoMB.medicamentoItens}"	emptyMessage="Nenhum registro buscado."
 				style="font-size:13px; text-align:center;" rows="10" paginator="true">
 				<p:column headerText="Código">
 					<h:outputText value="#{medicamento.id}" />
 				</p:column>
 				<p:column headerText="Nome">
 					<h:outputText value="#{medicamento.nome}" />
+				</p:column>
+				<p:column headerText="Fabricante">
+					<h:outputText value="#{medicamento.fabricante.nomeFabricante}" />
 				</p:column>
 				<p:column headerText="Preço">
 					<h:outputText value="R$ #{medicamento.preco}" />
@@ -42,13 +43,15 @@
 				<p:column headerText="Data entrada">
 					<h:outputText value="#{medicamento.dataEntradaUltimoEstoque}" />
 				</p:column>
+				<p:column headerText="Operacoes">
+					<p:commandButton icon="ui-icon-script" actionListener="#{MedicamentoMB.prepararEditar}" onclick="PF('modelEditar').show();" update=":frmEdit"/>
+				</p:column>
 			</p:dataTable>
 		</h:form>
 		<div style=".input{margin:auto;}">
-			<p:commandButton value="Cadastrar Medicamento" 
-				onclick="PF('modelCadastro').show();" />
+			<p:commandButton value="Cadastrar Medicamento" onclick="PF('modelCadastro').show();" />
 		</div>
-		<p:dialog header="CADASTRO MEDICAMENTO" appendTo="@(body)" width="1000" height="700"
+		<p:dialog header="CADASTRO MEDICAMENTO" appendTo="@(body)" width="1000" height="500"
 			resizable="false" closable="false" position="center"
 			widgetVar="modelCadastro" draggable="false" modal="true">
 			<h:form>
@@ -56,34 +59,73 @@
 				<p:inputText size="60" style="margin-right:10px;" maxlength="100" required="true" value="#{MedicamentoMB.medicamento.nome}"/>
 					
 				<h:outputLabel value="Quantidade:" />
-				<p:inputText placeholder="un./cx." size="6" value="#{MedicamentoMB.medicamento.quantidade}" /><br /><br />
+				<p:inputText placeholder="un./cx." size="6" value="#{MedicamentoMB.medicamento.quantidade}" style="margin-left:10px;" /><br /><br />
 				
 				<h:outputLabel value="Preço:"
 					style="margin-right:8px; margin-top:10px;" />
-				<p:inputText placeholder="R$ 9.99" required="true" size="10" value="#{MedicamentoMB.medicamento.preco}"/><br /><br />
+				<p:inputText placeholder="R$ 9.99" required="true" size="10" value="#{MedicamentoMB.medicamento.preco}" style="margin-left:10px;" /><br /><br />
 				
 				<h:outputLabel value="Substâncias:" /><br />
-				<p:inputTextarea rows="5" cols="80" required="true" value="#{MedicamentoMB.medicamento.substrancias}"/><br />
+				<p:inputTextarea rows="5" cols="80" required="true" value="#{MedicamentoMB.medicamento.substrancias}" style="margin-left:10px;" /><br />
 				
 				<h:outputLabel value="Descricao de uso:" /><br />
-				<p:inputTextarea rows="5" cols="80" value="#{MedicamentoMB.medicamento.descricaoDeUsuabilidade}"/><br /><br />
+				<p:inputTextarea rows="5" cols="80" value="#{MedicamentoMB.medicamento.descricaoDeUsuabilidade}" style="margin-left:10px;"/><br /><br />
 				
 				<h:outputLabel value="Fornecedor:" style="line-height:10px;" />
-				<p:selectOneMenu id="select" style="width:160px; margin-right:30px;" value="#{MedicamentoMB.listaMedicamentos}" >
+				<p:selectOneMenu id="select" style="width:160px; margin-left:30px; margin-right:30px;">
 					<f:selectItem itemLabel="  " itemValue="" />
-					<f:selectItem  var="item" value="#{MedicamentoMB.listaMedicamentos}" itemLabel="#{item.nome}" itemValue="#{item}" />
+					<f:selectItems value="#{MedicamentoMB.fabricanteLista}" var="item" itemLabel="#{item.nomeFabricante}" itemValue="#{item.id}" />
 				</p:selectOneMenu>
 				
-				
-				<p:outputLabel value="Data Entrada" />
-       			<p:calendar id="effect" effect="fold" pattern="yyyy-MM-dd"  value="#{MedicamentoMB.medicamento.dataEntradaUltimoEstoque}"/>
+				<h:outputLabel  />
+				<p:outputLabel value="Data Entrada:" />
+       			<p:calendar id="effect" effect="fold" pattern="dd-MM-yyyy" value="#{MedicamentoMB.medicamento.dataEntradaUltimoEstoque}" style="margin-left:10px;" /><br /><br />
+       			
 				<div style="margin: auto;">
 					<p:commandButton value="Cadastrar" actionListener="#{MedicamentoMB.cadastroMedicamento}"
-						oncomplete="PF('modelCadastro').hide();" />
+						oncomplete="PF('modelCadastro').hide();" update=":formTable:tbl "/>
 					<p:commandButton value="Cancelar"
 						onclick="PF('modelCadastro').hide();" />
 				</div>
 			</h:form>
+		</p:dialog>
+		<p:dialog header="EDITAR MEDICAMENTO" appendTo="@(body)" minimizable="true" closable="false" draggable="false" width="1000" widgetVar="modelEditar">
+			<h:form id="frmEdit">
+				<h:outputLabel value="Nome: " />
+				<p:inputText size="60" style="margin-right:10px;" maxlength="100" required="true" value="#{MedicamentoMB.medicamento.nome}"/>
+					
+				<h:outputLabel value="Quantidade:" />
+				<p:inputText placeholder="un./cx." size="6" value="#{MedicamentoMB.medicamento.quantidade}" style="margin-left:10px;" /><br /><br />
+				
+				<h:outputLabel value="Preço:"
+					style="margin-right:8px; margin-top:10px;" />
+				<p:inputText placeholder="R$ 9.99" required="true" size="10" value="#{MedicamentoMB.medicamento.preco}" style="margin-left:10px;" /><br /><br />
+				
+				<h:outputLabel value="Substâncias:" /><br />
+				<p:inputTextarea rows="5" cols="80" required="true" value="#{MedicamentoMB.medicamento.substrancias}" style="margin-left:10px;" /><br />
+				
+				<h:outputLabel value="Descricao de uso:" /><br />
+				<p:inputTextarea rows="5" cols="80" value="#{MedicamentoMB.medicamento.descricaoDeUsuabilidade}" style="margin-left:10px;"/><br /><br />
+				
+				<h:outputLabel value="Fornecedor:" style="line-height:10px;" />
+				<p:selectOneMenu id="select" style="width:160px; margin-left:30px; margin-right:30px;" required="true">
+					<f:selectItem itemLabel="Selecione um" itemValue="" />
+					<f:selectItems value="#{MedicamentoMB.fabricanteLista}" var="item" itemLabel="#{item.nomeFabricante}" itemValue="#{item.id}" />
+				</p:selectOneMenu>
+				<h:outputLabel  />
+				<p:outputLabel value="Data Entrada:" />
+       			<p:calendar id="effect" effect="fold" pattern="dd-MM-yyyy" value="#{MedicamentoMB.medicamento.dataEntradaUltimoEstoque}" style="margin-left:10px;" /><br /><br />
+       			<p:commandButton value="Editar" actionListener="#{MedicamentoMB.editar}" oncomplete="PF('modelEditar;).hide();" update=":formTable:tbl "/>
+				<p:commandButton value="Cancelar" onclick="PF('modelEditar').hide();"/>			
+			</h:form>
+		</p:dialog>
+		<p:dialog>
+		
+		
+		
+		
+		
+		
 		</p:dialog>
 	</ui:define>
 </ui:composition>

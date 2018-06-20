@@ -11,6 +11,7 @@ import javax.faces.view.ViewScoped;
 
 import br.com.drogariareescrita.controleestoque.dao.FabricanteDAO;
 import br.com.drogariareescrita.controleestoque.dao.MedicamentoDAO;
+import br.com.drogariareescrita.controleestoque.domains.Fabricante;
 import br.com.drogariareescrita.controleestoque.domains.Medicamento;
 
 @ManagedBean(name = "MedicamentoMB")
@@ -19,18 +20,18 @@ import br.com.drogariareescrita.controleestoque.domains.Medicamento;
 public class MedicamentoBean {
 	private Medicamento medicamento;
 	private ListDataModel<Medicamento> medicamentoItens;
-	private List<Medicamento> listaMedicamentos;
-	
+	private List<Fabricante> fabricanteLista;
+
 	@PostConstruct
 	public void carregarTabela() {
-		listaMedicamentos = new ArrayList<>();
+		fabricanteLista = new ArrayList<>();
 		MedicamentoDAO dao = new MedicamentoDAO();
+		FabricanteDAO daoFa = new FabricanteDAO();
 		try {
 			medicamento = new Medicamento();
 			ArrayList<Medicamento> lista = dao.selectMedicamentoALl();
-			
-			listaMedicamentos.addAll(dao.selectMedicamentoALl());
-			
+
+			fabricanteLista.addAll(daoFa.selectFabricanteAll());
 			medicamentoItens = new ListDataModel<>(lista);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -49,16 +50,18 @@ public class MedicamentoBean {
 		}
 	}
 	
-	public void carregaSelects() {
-		FabricanteDAO dao =  new FabricanteDAO();
+	public void prepararEditar() {
+		medicamento = medicamentoItens.getRowData();
 	}
-
-	public List<Medicamento> getListaMedicamentos() {
-		return listaMedicamentos;
-	}
-
-	public void setListaMedicamentos(List<Medicamento> listaMedicamentos) {
-		this.listaMedicamentos = listaMedicamentos;
+	
+	public void editar() {
+		MedicamentoDAO dao = new MedicamentoDAO();
+		try {
+			dao.updateMedicamento(medicamento);
+			medicamentoItens = new ListDataModel<>(dao.selectMedicamentoALl());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public ListDataModel<Medicamento> getMedicamentoItens() {
@@ -76,5 +79,14 @@ public class MedicamentoBean {
 	public void setMedicamento(Medicamento medicamento) {
 		this.medicamento = medicamento;
 	}
+
+	public List<Fabricante> getFabricanteLista() {
+		return fabricanteLista;
+	}
+
+	public void setFabricanteLista(List<Fabricante> fabricanteLista) {
+		this.fabricanteLista = fabricanteLista;
+	}
+
 
 }

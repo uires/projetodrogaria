@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.apache.catalina.tribes.membership.McastServiceImpl.SenderThread;
+
 import br.com.drogariareescrita.controleestoque.domains.Fabricante;
 import br.com.drogariareescrita.controleestoque.domains.Medicamento;
 import br.com.drogariareescrita.controleestoque.factory.ConnectionFactory;
@@ -79,10 +81,31 @@ public class MedicamentoDAO {
 			medicamento.setPesoLiquido(resultadoQuerySelectMedicamentos.getDouble("peso_liquido"));
 			medicamento.setFabricante(new Fabricante());
 			medicamento.getFabricante().setId(resultadoQuerySelectMedicamentos.getLong("id_fornecedor"));
+			FabricanteDAO dao = new FabricanteDAO();
+			medicamento.setFabricante(dao.selectFabricante(medicamento.getFabricante()));
 			medicamento.setDataEntradaUltimoEstoque(
 					resultadoQuerySelectMedicamentos.getDate("data_entrada_ultimo_estoque"));
 			listaMedicamentosObjetos.add(medicamento);
 		}
 		return listaMedicamentosObjetos;
+	}
+	
+	public void updateMedicamento(Medicamento medi) throws SQLException {
+		String sql = "UPDATE medicamento "
+				+ "SET nome = ?, quantidade = ?, preco = ?, substancias = ?, descricao_de_usuabilidade = ?, "
+				+ "peso_liquido = ?, id_fornecedor = ?, data_entrada_ultimo_estoque = ? "
+				+ "WHERE id = ?";
+		Connection conexao = ConnectionFactory.getConnectionFactoryBank();
+		PreparedStatement sentencaQueryUpdate = conexao.prepareStatement(sql);
+		sentencaQueryUpdate.setString(1, medi.getNome());
+		sentencaQueryUpdate.setInt(2, medi.getQuantidade());
+		sentencaQueryUpdate.setDouble(3, medi.getPreco());
+		sentencaQueryUpdate.setString(4, medi.getSubstrancias());
+		sentencaQueryUpdate.setString(5, medi.getDescricaoDeUsuabilidade());
+		sentencaQueryUpdate.setDouble(6, medi.getPesoLiquido());
+		sentencaQueryUpdate.setLong(7, medi.getFabricante().getId());
+		sentencaQueryUpdate.setDate(8, new java.sql.Date(medi.getDataEntradaUltimoEstoque().getTime()));
+		sentencaQueryUpdate.setLong(9, medi.getId());
+		sentencaQueryUpdate.execute();
 	}
 }
